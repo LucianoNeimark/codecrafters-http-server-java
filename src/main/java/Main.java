@@ -26,19 +26,24 @@ public class Main {
             BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 
             String request = reader.readLine();
-
             String[] requestParts = request.split("\r\n");
-
             String requestLine = requestParts[0];
-
             String requestLinePath = requestLine.split(" ")[1];
+            String[] pathParts = requestLinePath.split("/"); // /abc/hello/world -> ['', 'abc', 'hello', 'world', '']
 
-            if(!requestLinePath.equals("/")) {
-                clientSocket.getOutputStream().write("HTTP/1.1 404 Not Found\r\n\r\n".getBytes());
-                clientSocket.close();
+
+            if (pathParts[1].equals("echo")) {
+                clientSocket.getOutputStream().write(
+                        ("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " +
+                                pathParts[1].length() + "\r\n\r\n" + pathParts[1])
+                                .getBytes());
             }
 
-            clientSocket.getOutputStream().write("HTTP/1.1 200 OK\r\n\r\n".getBytes());
+            if (pathParts[1].equals("")) {
+                clientSocket.getOutputStream().write("HTTP/1.1 200 OK\r\n\r\n".getBytes());
+            }
+
+            clientSocket.getOutputStream().write("HTTP/1.1 404 Not Found\r\n\r\n".getBytes());
 
 
         } catch (IOException e) {
