@@ -35,8 +35,7 @@ public class Main {
             if (pathParts[1].equals("echo")) {
                 clientSocket.getOutputStream().write(
                         ("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " +
-                                pathParts[1].length() + "\r\n\r\n" + pathParts[1])
-                                .getBytes());
+                                pathParts[2].length() + "\r\n\r\n" + pathParts[2]).getBytes());
             }
 
             if (pathParts[1].equals("")) {
