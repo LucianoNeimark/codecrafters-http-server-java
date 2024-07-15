@@ -63,14 +63,14 @@ public class Main {
                     clientSocket.getOutputStream().write(responseRoot.getBytes());
                     break;
                 case ("echo"):
-                    String responseEcho = responseBuilder("HTTP/1.1 200 OK","Content-Type: text/plain\n" +
+                    String responseEcho = responseBuilder("HTTP/1.1 200 OK","Content-Type: text/plain\r\n" +
                                     "Content-Length: "  + pathParts[2].length(), pathParts[2]);
                     clientSocket.getOutputStream().write(responseEcho.getBytes());
                     break;
 
                 case ("user-agent"):
                     String userAgent = headerValue("user-agent", headers);
-                    String responseUA = responseBuilder("HTTP/1.1 200 OK", "Content-Type: text/plain\n" +
+                    String responseUA = responseBuilder("HTTP/1.1 200 OK", "Content-Type: text/plain\r\n" +
                             "Content-Length: " + userAgent.length(), userAgent);
                     clientSocket.getOutputStream().write(responseUA.getBytes());
                     break;
