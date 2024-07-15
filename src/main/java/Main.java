@@ -31,16 +31,19 @@ public class Main {
             String requestLinePath = requestLine.split(" ")[1];
             String[] pathParts = requestLinePath.split("/"); // /abc/hello/world -> ['', 'abc', 'hello', 'world', '']
 
-            if (pathParts.length == 0) {
-                clientSocket.getOutputStream().write("HTTP/1.1 200 OK\r\n\r\n".getBytes());
-            }
+            String root = pathParts.length == 0 ? "" : pathParts[1];
 
-            if (pathParts[1].equals("echo")) {
-                clientSocket.getOutputStream().write(
-                        ("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " +
-                                pathParts[2].length() + "\r\n\r\n" + pathParts[2]).getBytes());
-            }
+            switch (root) {
+                case (""):
+                    clientSocket.getOutputStream().write("HTTP/1.1 200 OK\r\n\r\n".getBytes());
+                    break;
+                case ("echo"):
+                    clientSocket.getOutputStream().write(
+                            ("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " +
+                                    pathParts[2].length() + "\r\n\r\n" + pathParts[2]).getBytes());
+                    break;
 
+            }
 
 
             clientSocket.getOutputStream().write("HTTP/1.1 404 Not Found\r\n\r\n".getBytes());
