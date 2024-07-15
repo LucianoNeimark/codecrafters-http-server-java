@@ -44,10 +44,8 @@ public class Main {
             BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 
             String request = reader.readLine();
-            String[] requestParts = request.split("\r\n");
-            String requestLine = requestParts[0];
-            String requestLinePath = requestLine.split(" ")[1];
-            String[] pathParts = requestLinePath.split("/"); // /abc/hello/world -> ['', 'abc', 'hello', 'world', '']
+            String resource = request.split(" ")[1];
+            String[] splitResource = resource.split("/"); // /abc/hello/world -> ['', 'abc', 'hello', 'world', '']
 
             List<String> headers = new ArrayList<>();
             String line;
@@ -55,16 +53,16 @@ public class Main {
                 headers.add(line);
             }
 
-            String root = pathParts.length == 0 ? "" : pathParts[1];
+            String resourceRoot = splitResource.length == 0 ? "" : splitResource[1];
 
-            switch (root) {
+            switch (resourceRoot) {
                 case (""):
                     String responseRoot = responseBuilder("HTTP/1.1 200 OK", "", "");
                     clientSocket.getOutputStream().write(responseRoot.getBytes());
                     break;
                 case ("echo"):
                     String responseEcho = responseBuilder("HTTP/1.1 200 OK","Content-Type: text/plain\r\n" +
-                                    "Content-Length: "  + pathParts[2].length(), pathParts[2]);
+                                    "Content-Length: "  + splitResource[2].length(), splitResource[2]);
                     clientSocket.getOutputStream().write(responseEcho.getBytes());
                     break;
 
