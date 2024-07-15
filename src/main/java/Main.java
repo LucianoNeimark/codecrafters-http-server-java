@@ -38,43 +38,48 @@ public class Main {
             // Since the tester restarts your program quite often, setting SO_REUSEADDR
             // ensures that we don't run into 'Address already in use' errors
             serverSocket.setReuseAddress(true);
-            clientSocket = serverSocket.accept();
-            System.out.println("accepted new connection");
-            InputStream input = clientSocket.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 
-            String request = reader.readLine();
-            String resource = request.split(" ")[1];
-            String[] splitResource = resource.split("/"); // /abc/hello/world -> ['', 'abc', 'hello', 'world', '']
+            while (true) {
+                clientSocket = serverSocket.accept();
+                System.out.println("accepted new connection");
+                InputStream input = clientSocket.getInputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 
-            List<String> headers = new ArrayList<>();
-            String line;
-            while (!(line = reader.readLine()).isEmpty()) {
-                headers.add(line);
+                String request = reader.readLine();
+                String resource = request.split(" ")[1];
+                String[] splitResource = resource.split("/"); // /abc/hello/world -> ['', 'abc', 'hello', 'world', '']
+
+                List<String> headers = new ArrayList<>();
+                String line;
+                while (!(line = reader.readLine()).isEmpty()) {
+                    headers.add(line);
+                }
+
+                String resourceRoot = splitResource.length == 0 ? "" : splitResource[1];
+
+                switch (resourceRoot) {
+                    case (""):
+                        String responseRoot = responseBuilder("HTTP/1.1 200 OK", "", "");
+                        clientSocket.getOutputStream().write(responseRoot.getBytes());
+                        break;
+                    case ("echo"):
+                        String responseEcho = responseBuilder("HTTP/1.1 200 OK","Content-Type: text/plain\r\n" +
+                                "Content-Length: "  + splitResource[2].length(), splitResource[2]);
+                        clientSocket.getOutputStream().write(responseEcho.getBytes());
+                        break;
+
+                    case ("user-agent"):
+                        String userAgent = headerValue("user-agent", headers);
+                        String responseUA = responseBuilder("HTTP/1.1 200 OK", "Content-Type: text/plain\r\n" +
+                                "Content-Length: " + userAgent.length(), userAgent);
+                        clientSocket.getOutputStream().write(responseUA.getBytes());
+                        break;
+                    default:
+                        clientSocket.getOutputStream().write(responseBuilder("HTTP/1.1 404 Not Found", "", "").getBytes());
+                }
             }
 
-            String resourceRoot = splitResource.length == 0 ? "" : splitResource[1];
 
-            switch (resourceRoot) {
-                case (""):
-                    String responseRoot = responseBuilder("HTTP/1.1 200 OK", "", "");
-                    clientSocket.getOutputStream().write(responseRoot.getBytes());
-                    break;
-                case ("echo"):
-                    String responseEcho = responseBuilder("HTTP/1.1 200 OK","Content-Type: text/plain\r\n" +
-                                    "Content-Length: "  + splitResource[2].length(), splitResource[2]);
-                    clientSocket.getOutputStream().write(responseEcho.getBytes());
-                    break;
-
-                case ("user-agent"):
-                    String userAgent = headerValue("user-agent", headers);
-                    String responseUA = responseBuilder("HTTP/1.1 200 OK", "Content-Type: text/plain\r\n" +
-                            "Content-Length: " + userAgent.length(), userAgent);
-                    clientSocket.getOutputStream().write(responseUA.getBytes());
-                    break;
-                default:
-                    clientSocket.getOutputStream().write(responseBuilder("HTTP/1.1 404 Not Found", "", "").getBytes());
-            }
 
 
 
