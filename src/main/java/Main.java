@@ -31,6 +31,9 @@ public class Main {
             String requestLinePath = requestLine.split(" ")[1];
             String[] pathParts = requestLinePath.split("/"); // /abc/hello/world -> ['', 'abc', 'hello', 'world', '']
 
+            if (pathParts.length == 0) {
+                clientSocket.getOutputStream().write("HTTP/1.1 200 OK\r\n\r\n".getBytes());
+            }
 
             if (pathParts[1].equals("echo")) {
                 clientSocket.getOutputStream().write(
@@ -38,9 +41,7 @@ public class Main {
                                 pathParts[2].length() + "\r\n\r\n" + pathParts[2]).getBytes());
             }
 
-            if (pathParts[1].equals("")) {
-                clientSocket.getOutputStream().write("HTTP/1.1 200 OK\r\n\r\n".getBytes());
-            }
+
 
             clientSocket.getOutputStream().write("HTTP/1.1 404 Not Found\r\n\r\n".getBytes());
 
