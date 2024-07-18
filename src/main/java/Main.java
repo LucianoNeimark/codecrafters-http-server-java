@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
-    private static String headerValue(String headerName, List<String> headers) {
+    static String headerValue(String headerName, List<String> headers) {
         for (String header: headers) {
             String[] parts = header.split(":");
             String name = parts[0].toLowerCase();
@@ -20,68 +20,21 @@ public class Main {
         return "";
     }
 
-    private static String responseBuilder(String statusLine, String responseHeaders, String responseBody) {
+    static String responseBuilder(String statusLine, String responseHeaders, String responseBody) {
         return statusLine + "\r\n" + responseHeaders + "\r\n\r\n" + responseBody;
     }
 
     public static void main(String[] args) {
-        // You can use print statements as follows for debugging, they'll be visible when running tests.
-        System.out.println("Logs from your program will appear here!");
-
-        // Uncomment this block to pass the first stage
-        //
-        ServerSocket serverSocket = null;
-        Socket clientSocket = null;
-
+        System.out.println("Starting server...");
+        ServerSocket serverSocket;
         try {
             serverSocket = new ServerSocket(4221);
-            // Since the tester restarts your program quite often, setting SO_REUSEADDR
-            // ensures that we don't run into 'Address already in use' errors
             serverSocket.setReuseAddress(true);
-
             while (true) {
-                clientSocket = serverSocket.accept();
-                System.out.println("accepted new connection");
-                InputStream input = clientSocket.getInputStream();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-
-                String request = reader.readLine();
-                String resource = request.split(" ")[1];
-                String[] splitResource = resource.split("/"); // /abc/hello/world -> ['', 'abc', 'hello', 'world', '']
-
-                List<String> headers = new ArrayList<>();
-                String line;
-                while (!(line = reader.readLine()).isEmpty()) {
-                    headers.add(line);
-                }
-
-                String resourceRoot = splitResource.length == 0 ? "" : splitResource[1];
-
-                switch (resourceRoot) {
-                    case (""):
-                        String responseRoot = responseBuilder("HTTP/1.1 200 OK", "", "");
-                        clientSocket.getOutputStream().write(responseRoot.getBytes());
-                        break;
-                    case ("echo"):
-                        String responseEcho = responseBuilder("HTTP/1.1 200 OK","Content-Type: text/plain\r\n" +
-                                "Content-Length: "  + splitResource[2].length(), splitResource[2]);
-                        clientSocket.getOutputStream().write(responseEcho.getBytes());
-                        break;
-
-                    case ("user-agent"):
-                        String userAgent = headerValue("user-agent", headers);
-                        String responseUA = responseBuilder("HTTP/1.1 200 OK", "Content-Type: text/plain\r\n" +
-                                "Content-Length: " + userAgent.length(), userAgent);
-                        clientSocket.getOutputStream().write(responseUA.getBytes());
-                        break;
-                    default:
-                        clientSocket.getOutputStream().write(responseBuilder("HTTP/1.1 404 Not Found", "", "").getBytes());
-                }
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("New Client!");
+                new Thread(new ClientHandler(clientSocket)).start();
             }
-
-
-
-
 
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
