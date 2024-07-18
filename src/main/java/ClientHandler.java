@@ -51,23 +51,34 @@ public class ClientHandler implements Runnable {
 
             String resourceRoot = splitResource.length == 0 ? "" : splitResource[1];
 
+            String statusLine = "HTTP/1.1 404 Not Found";
+            String responseHeaders = "";
+            String responseBody = "";
+
             if (HTTPVerb.equals("GET")) {
                 switch (resourceRoot) {
                     case (""):
-                        String responseRoot = Main.responseBuilder("HTTP/1.1 200 OK", "", "");
-                        clientSocket.getOutputStream().write(responseRoot.getBytes());
+                        statusLine = "HTTP/1.1 200 OK";
+//                        String responseRoot = Main.responseBuilder("HTTP/1.1 200 OK", "", "");
+//                        clientSocket.getOutputStream().write(responseRoot.getBytes());
                         break;
                     case ("echo"):
-                        String responseEcho = Main.responseBuilder("HTTP/1.1 200 OK", "Content-Type: text/plain\r\n" +
-                                "Content-Length: " + splitResource[2].length(), splitResource[2]);
-                        clientSocket.getOutputStream().write(responseEcho.getBytes());
+                        statusLine = "HTTP/1.1 200 OK";
+                        responseHeaders = "Content-Type: text/plain\r\n" + "Content-Length: " + splitResource[2].length();
+                        responseBody = splitResource[2];
+//                        String responseEcho = Main.responseBuilder("HTTP/1.1 200 OK", "Content-Type: text/plain\r\n" +
+//                                "Content-Length: " + splitResource[2].length(), splitResource[2]);
+//                        clientSocket.getOutputStream().write(responseEcho.getBytes());
                         break;
 
                     case ("user-agent"):
                         String userAgent = Main.headerValue("user-agent", headers);
-                        String responseUA = Main.responseBuilder("HTTP/1.1 200 OK", "Content-Type: text/plain\r\n" +
-                                "Content-Length: " + userAgent.length(), userAgent);
-                        clientSocket.getOutputStream().write(responseUA.getBytes());
+                        statusLine = "HTTP/1.1 200 OK";
+                        responseHeaders = "Content-Type: text/plain\r\n" + "Content-Length: " + userAgent.length();
+                        responseBody = userAgent;
+//                        String responseUA = Main.responseBuilder("HTTP/1.1 200 OK", "Content-Type: text/plain\r\n" +
+//                                "Content-Length: " + userAgent.length(), userAgent);
+//                        clientSocket.getOutputStream().write(responseUA.getBytes());
                         break;
 
                     case ("files"):
@@ -89,14 +100,18 @@ public class ClientHandler implements Runnable {
                         for (String fileLine : lines) {
                             fileContent.append(fileLine);
                         }
-                        String responseFile = Main.responseBuilder("HTTP/1.1 200 OK", "Content-Type: application/octet-stream\r\n" +
-                                "Content-Length: " + fileContent.length(), fileContent.toString());
-                        clientSocket.getOutputStream().write(responseFile.getBytes());
+                        statusLine = "HTTP/1.1 200 OK";
+                        responseHeaders = "Content-Type: application/octet-stream\r\n" + "Content-Length: " + fileContent.length();
+                        responseBody = fileContent.toString();
+//                        String responseFile = Main.responseBuilder("HTTP/1.1 200 OK", "Content-Type: application/octet-stream\r\n" +
+//                                "Content-Length: " + fileContent.length(), fileContent.toString());
+//                        clientSocket.getOutputStream().write(responseFile.getBytes());
                         break;
-                    default:
-                        clientSocket.getOutputStream().write(Main.responseBuilder("HTTP/1.1 404 Not Found", "", "").getBytes());
+
                 }
             }
+            String responseFile = Main.responseBuilder(statusLine, responseHeaders, responseBody);
+            clientSocket.getOutputStream().write(responseFile.getBytes());
 
             if (HTTPVerb.equals("POST")) {
                 switch (resourceRoot) {
