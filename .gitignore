@@ -2,3 +2,4 @@ java_http.jar
 target/*
 target/
 .idea/
+tmp/

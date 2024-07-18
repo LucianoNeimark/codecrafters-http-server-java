@@ -4,6 +4,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +27,11 @@ public class Main {
     }
 
     public static void main(String[] args) {
+        String directory = null;
+        if (args.length > 1 && args[0].equals("--directory")) {
+            directory = args[1];
+        }
+
         System.out.println("Starting server...");
         ServerSocket serverSocket;
         try {
@@ -33,7 +40,7 @@ public class Main {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("New Client!");
-                new Thread(new ClientHandler(clientSocket)).start();
+                new Thread(new ClientHandler(clientSocket, directory)).start();
             }
 
         } catch (IOException e) {
