@@ -1,13 +1,12 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 
 public class Main {
     static String headerValue(String headerName, List<String> headers) {
@@ -26,6 +25,14 @@ public class Main {
 
     static String responseBuilder(String statusLine, String responseHeaders, String responseBody) {
         return statusLine + "\r\n" + responseHeaders + "\r\n\r\n" + responseBody;
+    }
+
+    public static String compressString(String data) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(byteArrayOutputStream)) {
+            gzipOutputStream.write(data.getBytes("UTF-8"));
+        }
+        return Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray());
     }
 
     public static void main(String[] args) {

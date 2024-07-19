@@ -65,7 +65,10 @@ public class ClientHandler implements Runnable {
 
                 for (String e : encodings) {
                     if (e.equals("gzip")) {
-                        baseHeader += "Content-Encoding: " + e + "\r\n";
+                        baseHeader = "Content-Encoding: " + e + "\r\n";
+                        StringBuilder compressedBody = new StringBuilder();
+                        compressedBody.append(Main.compressString(body.toString()));
+                        body = compressedBody;
                     }
                 }
 
