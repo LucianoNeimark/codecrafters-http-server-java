@@ -109,8 +109,7 @@ public class ClientHandler implements Runnable {
 
                 }
             }
-            String responseFile = Main.responseBuilder(statusLine, baseHeader += responseHeaders, responseBody);
-            clientSocket.getOutputStream().write(responseFile.getBytes());
+
 
             if (HTTPVerb.equals("POST")) {
                 switch (resourceRoot) {
@@ -134,6 +133,9 @@ public class ClientHandler implements Runnable {
                         break;
                 }
             }
+
+            String responseFile = Main.responseBuilder(statusLine, baseHeader += responseHeaders, responseBody);
+            clientSocket.getOutputStream().write(responseFile.getBytes());
 
         } catch (Exception e) {
             System.out.println(e);
