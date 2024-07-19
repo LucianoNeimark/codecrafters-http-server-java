@@ -93,7 +93,7 @@ public class ClientHandler implements Runnable {
                             contentLength = gzipData.length;
                             statusLine = "HTTP/1.1 200 OK";
                             responseHeaders = "Content-Type: text/plain\r\n" + "Content-Length: " + contentLength;
-                            byte[] firstPart = Main.responseBuilderNoBody(statusLine, responseHeaders);
+                            byte[] firstPart = Main.responseBuilderNoBody(statusLine, baseHeader + responseHeaders);
                             clientSocket.getOutputStream().write(firstPart);
                             clientSocket.getOutputStream().write(gzipData);
 
