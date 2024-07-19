@@ -58,4 +58,8 @@ public class Main {
     }
 
 
+    public static String responseBuilderBytes(String statusLine, String responseHeaders, byte[] gzipData) {
+        return statusLine + "\r\n" + responseHeaders + "\r\n\r\n" + gzipData;
+
+    }
 }

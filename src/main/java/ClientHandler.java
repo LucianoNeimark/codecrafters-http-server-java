@@ -1,14 +1,13 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 
 public class ClientHandler implements Runnable {
     private Socket clientSocket;
@@ -42,6 +41,7 @@ public class ClientHandler implements Runnable {
 
             // Read the body if Content-Length is specified
             StringBuilder body = new StringBuilder();
+            byte[] gzipData = null;
             if (contentLength > 0) {
                 char[] buffer = new char[contentLength];
                 reader.read(buffer, 0, contentLength);
@@ -66,9 +66,13 @@ public class ClientHandler implements Runnable {
                 for (String e : encodings) {
                     if (e.equals("gzip")) {
                         baseHeader = "Content-Encoding: " + e + "\r\n";
-                        StringBuilder compressedBody = new StringBuilder();
-                        compressedBody.append(Main.compressString(body.toString()));
-                        body = compressedBody;
+                        ByteArrayOutputStream byteArrayOutputStream =
+                                new ByteArrayOutputStream();
+                        try (GZIPOutputStream gzipOutputStream =
+                                     new GZIPOutputStream(byteArrayOutputStream)) {
+                            gzipOutputStream.write(body.toString().getBytes(StandardCharsets.UTF_8));
+                        }
+                        gzipData = byteArrayOutputStream.toByteArray();
                     }
                 }
 
@@ -141,9 +145,14 @@ public class ClientHandler implements Runnable {
                         break;
                 }
             }
+            String response = null;
 
-            String responseFile = Main.responseBuilder(statusLine, baseHeader += responseHeaders, responseBody);
-            clientSocket.getOutputStream().write(responseFile.getBytes());
+            if (gzipData == null)
+                response = Main.responseBuilder(statusLine, baseHeader + responseHeaders, responseBody);
+            else {
+                response = Main.responseBuilderBytes(statusLine, baseHeader + responseHeaders, gzipData);
+            }
+            clientSocket.getOutputStream().write(response.getBytes());
 
         } catch (Exception e) {
             System.out.println(e);
