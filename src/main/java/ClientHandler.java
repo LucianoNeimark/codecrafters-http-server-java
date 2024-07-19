@@ -60,8 +60,13 @@ public class ClientHandler implements Runnable {
             String acceptEncodingHeaderValue = Main.headerValue("Accept-Encoding", headers);
 
             if (!acceptEncodingHeaderValue.isEmpty()) {
-                if (acceptEncodingHeaderValue.equals("gzip")) {
-                    baseHeader += "Content-Encoding: " + acceptEncodingHeaderValue + "\r\n";
+
+                String[] encodings = acceptEncodingHeaderValue.split(", ");
+
+                for (String e : encodings) {
+                    if (e.equals("gzip")) {
+                        baseHeader += "Content-Encoding: " + e + "\r\n";
+                    }
                 }
 
             }
