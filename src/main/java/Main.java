@@ -15,12 +15,14 @@ public class Main {
             String[] parts = header.split(":");
             String name = parts[0].toLowerCase();
             String value = parts[1];
-            if (name.equals(headerName)) {
+            if (name.equals(headerName.toLowerCase())) {
                 return value.trim();
             }
         }
         return "";
     }
+
+
 
     static String responseBuilder(String statusLine, String responseHeaders, String responseBody) {
         return statusLine + "\r\n" + responseHeaders + "\r\n\r\n" + responseBody;
