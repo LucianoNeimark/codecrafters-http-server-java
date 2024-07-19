@@ -58,6 +58,7 @@ public class ClientHandler implements Runnable {
             String baseHeader = "";
 
             String acceptEncodingHeaderValue = Main.headerValue("Accept-Encoding", headers);
+            boolean gzip = false;
 
             if (!acceptEncodingHeaderValue.isEmpty()) {
 
@@ -65,14 +66,8 @@ public class ClientHandler implements Runnable {
 
                 for (String e : encodings) {
                     if (e.equals("gzip")) {
+                        gzip = true;
                         baseHeader = "Content-Encoding: " + e + "\r\n";
-                        ByteArrayOutputStream byteArrayOutputStream =
-                                new ByteArrayOutputStream();
-                        try (GZIPOutputStream gzipOutputStream =
-                                     new GZIPOutputStream(byteArrayOutputStream)) {
-                            gzipOutputStream.write(body.toString().getBytes(StandardCharsets.UTF_8));
-                        }
-                        gzipData = byteArrayOutputStream.toByteArray();
                     }
                 }
 
@@ -84,9 +79,32 @@ public class ClientHandler implements Runnable {
                         statusLine = "HTTP/1.1 200 OK";
                         break;
                     case ("echo"):
-                        statusLine = "HTTP/1.1 200 OK";
-                        responseHeaders = "Content-Type: text/plain\r\n" + "Content-Length: " + splitResource[2].length();
+
                         responseBody = splitResource[2];
+
+                        if (gzip) {
+                            ByteArrayOutputStream byteArrayOutputStream =
+                                    new ByteArrayOutputStream();
+                            try (GZIPOutputStream gzipOutputStream =
+                                         new GZIPOutputStream(byteArrayOutputStream)) {
+                                gzipOutputStream.write(responseBody.getBytes(StandardCharsets.UTF_8));
+                            }
+                            gzipData = byteArrayOutputStream.toByteArray();
+                            contentLength = gzipData.length;
+                            statusLine = "HTTP/1.1 200 OK";
+                            responseHeaders = "Content-Type: text/plain\r\n" + "Content-Length: " + contentLength;
+                            byte[] firstPart = Main.responseBuilderNoBody(statusLine, responseHeaders);
+                            clientSocket.getOutputStream().write(firstPart);
+                            clientSocket.getOutputStream().write(gzipData);
+
+
+
+                        } else {
+                            contentLength = responseBody.length();
+                            statusLine = "HTTP/1.1 200 OK";
+                            responseHeaders = "Content-Type: text/plain\r\n" + "Content-Length: " + contentLength;
+                        }
+
                         break;
 
                     case ("user-agent"):
@@ -136,7 +154,7 @@ public class ClientHandler implements Runnable {
                             }
 
                             Files.write(filePath, content.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-                            clientSocket.getOutputStream().write(Main.responseBuilder("HTTP/1.1 201 Created", "", "").getBytes());
+                            clientSocket.getOutputStream().write(Main.responseBuilder("HTTP/1.1 201 Created", "", ""));
 
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -145,14 +163,9 @@ public class ClientHandler implements Runnable {
                         break;
                 }
             }
-            String response = null;
 
-            if (gzipData == null)
-                response = Main.responseBuilder(statusLine, baseHeader + responseHeaders, responseBody);
-            else {
-                response = Main.responseBuilderBytes(statusLine, baseHeader + responseHeaders, gzipData);
-            }
-            clientSocket.getOutputStream().write(response.getBytes());
+                byte[] response = Main.responseBuilder(statusLine, baseHeader + responseHeaders, responseBody);
+                clientSocket.getOutputStream().write(response);
 
         } catch (Exception e) {
             System.out.println(e);

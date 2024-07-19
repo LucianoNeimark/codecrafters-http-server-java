@@ -23,17 +23,17 @@ public class Main {
 
 
 
-    static String responseBuilder(String statusLine, String responseHeaders, String responseBody) {
-        return statusLine + "\r\n" + responseHeaders + "\r\n\r\n" + responseBody;
+    static byte[] responseBuilder(String statusLine, String responseHeaders, String responseBody) {
+        String response = statusLine + "\r\n" + responseHeaders + "\r\n\r\n" + responseBody;
+        return response.getBytes();
     }
 
-    public static String compressString(String data) throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(byteArrayOutputStream)) {
-            gzipOutputStream.write(data.getBytes("UTF-8"));
-        }
-        return Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray());
+    static byte[] responseBuilderNoBody(String statusLine, String responseHeaders) {
+        String responseString =  statusLine + "\r\n" + responseHeaders + "\r\n\r\n";
+        return  responseString.getBytes();
+
     }
+
 
     public static void main(String[] args) {
         String directory = null;
@@ -57,9 +57,4 @@ public class Main {
         }
     }
 
-
-    public static String responseBuilderBytes(String statusLine, String responseHeaders, byte[] gzipData) {
-        return statusLine + "\r\n" + responseHeaders + "\r\n\r\n" + gzipData;
-
-    }
 }
